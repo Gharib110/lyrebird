@@ -1,0 +1,7 @@
+test:
+  image: golang:bookworm
+  script:
+    - test -z "$(go fmt ./...)"
+    - go vet ./...
+    - go test -v ./...
+    - go build ./cmd/lyrebird
