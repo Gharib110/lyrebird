@@ -1,5 +1,5 @@
-## lyrebird - The obfourscator
-
+# lyrebird - The obfourscator
+# ATTENTION: OFFICIAL TOR PROJECT WITHOUT MODIFICATION. JUST FOR PERSONAL USE
 ### What?
 
 This is a look-like nothing obfuscation protocol that incorporates ideas and
