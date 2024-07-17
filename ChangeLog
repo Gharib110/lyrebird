@@ -1,3 +1,9 @@
+Changes in version 0.2.0 - 2024-03-27:
+- Socks5 Support general improvement
+- Fixed expected import path of package x25519ell2
+- Add WebTunnel Client Support
+- Updated dependencies
+
 Changes in version 0.1.0 - 2023-05-31:
  - Rename the project to lyrebird
  - Bring back meek uTLS support

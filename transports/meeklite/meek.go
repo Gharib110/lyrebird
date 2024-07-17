@@ -34,6 +34,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/utlsutil"
 	"io"
 	"io/ioutil"
 	"net"
@@ -111,7 +112,7 @@ func newClientArgs(args *pt.Args) (ca *meekClientArgs, err error) {
 
 	// Parse the (optional) utls argument.
 	utlsOpt, _ := args.Get(utlsArg)
-	if ca.utls, err = parseClientHelloID(utlsOpt); err != nil {
+	if ca.utls, err = utlsutil.ParseClientHelloID(utlsOpt); err != nil {
 		return nil, err
 	}
 

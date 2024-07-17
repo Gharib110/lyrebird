@@ -38,7 +38,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"sync"
 	"syscall"
 
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
@@ -63,6 +62,7 @@ func clientSetup() (launched bool, listeners []net.Listener) {
 	if err != nil {
 		golog.Fatal(err)
 	}
+	pt.ReportVersion("lyrebird", lyrebirdVersion)
 
 	ptClientProxy, err := ptGetProxy()
 	if err != nil {
@@ -181,6 +181,7 @@ func serverSetup() (launched bool, listeners []net.Listener) {
 	if err != nil {
 		golog.Fatal(err)
 	}
+	pt.ReportVersion("lyrebird", lyrebirdVersion)
 
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
@@ -267,37 +268,29 @@ func serverHandler(f base.ServerFactory, conn net.Conn, info *pt.ServerInfo) {
 }
 
 func copyLoop(a net.Conn, b net.Conn) error {
+	firstErr := func(errors ...error) error {
+		for _, err := range errors {
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
-	errChan := make(chan error, 2)
-
-	var wg sync.WaitGroup
-	wg.Add(2)
+	errChan := make(chan error, 1)
 
 	go func() {
-		defer wg.Done()
-		defer b.Close()
-		defer a.Close()
 		_, err := io.Copy(b, a)
 		errChan <- err
 	}()
-	go func() {
-		defer wg.Done()
-		defer a.Close()
-		defer b.Close()
-		_, err := io.Copy(a, b)
-		errChan <- err
-	}()
+
+	_, err := io.Copy(a, b)
 
 	// Wait for both upstream and downstream to close.  Since one side
 	// terminating closes the other, the second error in the channel will be
 	// something like EINVAL (though io.Copy() will swallow EOF), so only the
 	// first error is returned.
-	wg.Wait()
-	if len(errChan) > 0 {
-		return <-errChan
-	}
-
-	return nil
+	return firstErr(<-errChan, err, a.Close(), b.Close())
 }
 
 func main() {
@@ -313,7 +306,7 @@ func main() {
 	flag.Parse()
 
 	if *showVer {
-		fmt.Printf("%s\n", lyrebirdVersion)
+		fmt.Printf("lyrebird %s\n", lyrebirdVersion)
 		os.Exit(0)
 	}
 	if err := log.SetLogLevel(*logLevelStr); err != nil {
