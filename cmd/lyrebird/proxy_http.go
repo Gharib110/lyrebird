@@ -70,11 +70,6 @@ func (s *httpProxy) Dial(network, addr string) (net.Conn, error) {
 	}
 	conn := new(httpConn)
 	conn.httpConn = httputil.NewClientConn(c, nil) // nolint: staticcheck
-	conn.remoteAddr, err = net.ResolveTCPAddr(network, addr)
-	if err != nil {
-		conn.httpConn.Close()
-		return nil, err
-	}
 
 	// HACK HACK HACK HACK.  http.ReadRequest also does this.
 	reqURL, err := url.Parse("http://" + addr)
@@ -112,7 +107,6 @@ func (s *httpProxy) Dial(network, addr string) (net.Conn, error) {
 }
 
 type httpConn struct {
-	remoteAddr   *net.TCPAddr
 	httpConn     *httputil.ClientConn // nolint: staticcheck
 	hijackedConn net.Conn
 	staleReader  *bufio.Reader
@@ -141,7 +135,7 @@ func (c *httpConn) LocalAddr() net.Addr {
 }
 
 func (c *httpConn) RemoteAddr() net.Addr {
-	return c.remoteAddr
+	return &net.UnixAddr{Net: "unknown_HTTPProxy"}
 }
 
 func (c *httpConn) SetDeadline(t time.Time) error {

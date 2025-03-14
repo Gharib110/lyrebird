@@ -115,6 +115,7 @@ func (rt *roundTripper) dialTLS(network, addr string) (net.Conn, error) {
 		// a good optimization and is a relatively common server feature,
 		// neither Firefox nor Chromium appear to use such optimizations.
 		DynamicRecordSizingDisabled: true,
+		RootCAs:                     GetRootCAs(),
 	}, *rt.clientHelloID)
 
 	if err = conn.Handshake(); err != nil {

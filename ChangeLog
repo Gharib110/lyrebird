@@ -1,3 +1,15 @@
+Changes in version 0.5.0 - 2024-11-07:
+- Add snowflake transport to Lyrebird
+- Add event logging support for all transports
+
+Changes in version 0.4.0 - 2024-10-08:
+- Use go 1.21
+
+Changes in version 0.3.0 - 2024-08-07:
+- report lyrebird version and implementation to Tor
+- fix IPv6 support in webtunnel
+- simplify copyloop
+
 Changes in version 0.2.0 - 2024-03-27:
 - Socks5 Support general improvement
 - Fixed expected import path of package x25519ell2

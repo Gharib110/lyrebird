@@ -1,9 +1,7 @@
 package webtunnel
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/url"
 	"strings"
@@ -16,7 +14,7 @@ import (
 )
 
 type clientConfig struct {
-	RemoteAddresses []string
+	RemoteAddress string
 
 	Path            string
 	TLSKind         string
@@ -64,12 +62,12 @@ func (c *clientFactory) parseArgs(args *pt.Args) (interface{}, error) {
 		if port == "" {
 			port = defaultPort
 		}
+		config.RemoteAddress = url.Hostname() + ":" + port
 
-		config.RemoteAddresses, err = getAddressesFromHostname(url.Hostname(), port)
-		if err != nil {
-			log.Println(err)
-			return nil, errors.New("")
+		if remoteAddress, ok := args.Get("addr"); ok {
+			config.RemoteAddress = remoteAddress
 		}
+
 		config.TLSServerName = url.Hostname()
 	}
 
@@ -102,15 +100,12 @@ func (c *clientFactory) Dial(network, address string, dialFn base.DialFunc, args
 
 func (c *clientFactory) dial(network, address string, dialFn base.DialFunc, args interface{}) (net.Conn, error) {
 	config := args.(clientConfig)
-	var conn net.Conn
-	for _, addr := range config.RemoteAddresses {
-		if tcpConn, err := dialFn("tcp", addr); err == nil {
-			conn = tcpConn
-		}
+
+	conn, err := dialFn("tcp", config.RemoteAddress)
+	if err != nil {
+		return nil, fmt.Errorf("error dialing %s: %v", config.RemoteAddress, err)
 	}
-	if conn == nil {
-		return nil, fmt.Errorf("Can't connect to %v", config.RemoteAddresses)
-	}
+
 	if config.TLSKind != "" {
 		conf := &tls.Config{ServerName: config.TLSServerName}
 		if config.UTLSFingerprint == "" {
@@ -149,22 +144,5 @@ func (c *clientFactory) dial(network, address string, dialFn base.DialFunc, args
 	return conn, nil
 }
 
-func getAddressesFromHostname(hostname, port string) ([]string, error) {
-	addresses := []string{}
-	addr, err := net.LookupHost(hostname)
-	if err != nil {
-		return addresses, fmt.Errorf("Lookup error for host %s: %v", hostname, err)
-	}
-
-	for _, a := range addr {
-		ip := net.ParseIP(a)
-		if ip == nil || ip.IsLoopback() || ip.IsUnspecified() || ip.IsMulticast() || ip.IsLinkLocalUnicast() || ip.IsPrivate() {
-			continue
-		}
-		addresses = append(addresses, a+":"+port)
-	}
-	if len(addresses) == 0 {
-		return addresses, fmt.Errorf("Could not find any valid IP for %s", hostname)
-	}
-	return addresses, nil
-}
+// Not yet implemented
+func (cf *clientFactory) OnEvent(f func(base.TransportEvent)) {}

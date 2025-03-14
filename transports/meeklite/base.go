@@ -36,7 +36,7 @@ import (
 	"fmt"
 	"net"
 
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	pt "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/base"
 )
 
@@ -84,6 +84,9 @@ func (cf *meekClientFactory) Dial(network, addr string, dialFn base.DialFunc, ar
 
 	return newMeekConn(network, addr, dialFn, ca)
 }
+
+// Not yet implemented
+func (cf *meekClientFactory) OnEvent(f func(base.TransportEvent)) {}
 
 var (
 	_ base.ClientFactory = (*meekClientFactory)(nil)

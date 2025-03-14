@@ -32,7 +32,7 @@ package base // import "gitlab.torproject.org/tpo/anti-censorship/pluggable-tran
 import (
 	"net"
 
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	pt "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
 )
 
 type DialFunc func(string, string) (net.Conn, error)
@@ -54,6 +54,11 @@ type ClientFactory interface {
 	// (eg: handshaking) to get the connection to the point where it is
 	// ready to relay data.
 	Dial(network, address string, dialFn DialFunc, args interface{}) (net.Conn, error)
+
+	// OnEvent sets a callback that can be called by transports when notable
+	// events in the connection happen. This is especially useful for logging
+	// and UX purposes.
+	OnEvent(f func(TransportEvent))
 }
 
 // ServerFactory is the interface that defines the factory for creating
@@ -87,4 +92,8 @@ type Transport interface {
 	// ServerFactory returns a ServerFactory instance for this transport
 	// protocol.  This can fail if the provided arguments are invalid.
 	ServerFactory(stateDir string, args *pt.Args) (ServerFactory, error)
+}
+
+type TransportEvent interface {
+	String() string
 }

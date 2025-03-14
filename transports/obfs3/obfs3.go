@@ -40,7 +40,7 @@ import (
 	"net"
 	"time"
 
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	pt "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/csrand"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/uniformdh"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/base"
@@ -104,6 +104,9 @@ func (cf *obfs3ClientFactory) Dial(network, addr string, dialFn base.DialFunc, a
 	}
 	return conn, nil
 }
+
+// Not yet implemented
+func (cf *obfs3ClientFactory) OnEvent(f func(base.TransportEvent)) {}
 
 type obfs3ServerFactory struct {
 	transport base.Transport

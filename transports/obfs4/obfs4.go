@@ -42,7 +42,7 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	pt "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/drbg"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/ntor"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/probdist"
@@ -222,6 +222,9 @@ func (cf *obfs4ClientFactory) Dial(network, addr string, dialFn base.DialFunc, a
 	}
 	return conn, nil
 }
+
+// Not yet implemented
+func (cf *obfs4ClientFactory) OnEvent(f func(base.TransportEvent)) {}
 
 type obfs4ServerFactory struct {
 	transport base.Transport

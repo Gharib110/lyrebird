@@ -33,7 +33,7 @@ import (
 	"fmt"
 	"net"
 
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	pt "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/base"
 )
 
@@ -94,6 +94,9 @@ func (cf *ssClientFactory) Dial(network, addr string, dialFn base.DialFunc, args
 	}
 	return conn, nil
 }
+
+// Not yet implemented
+func (cf *ssClientFactory) OnEvent(f func(base.TransportEvent)) {}
 
 var _ base.ClientFactory = (*ssClientFactory)(nil)
 var _ base.Transport = (*Transport)(nil)

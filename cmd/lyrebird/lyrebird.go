@@ -38,13 +38,15 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"slices"
 	"syscall"
 
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	pt "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/log"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/common/socks5"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/base"
+	sf "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/v2/client/lib"
 	"golang.org/x/net/proxy"
 )
 
@@ -64,7 +66,7 @@ func clientSetup() (launched bool, listeners []net.Listener) {
 	}
 	pt.ReportVersion("lyrebird", lyrebirdVersion)
 
-	ptClientProxy, err := ptGetProxy()
+	ptClientProxy, err := ptGetProxy(slices.Contains(ptClientInfo.MethodNames, "snowflake"))
 	if err != nil {
 		golog.Fatal(err)
 	} else if ptClientProxy != nil {
@@ -84,6 +86,10 @@ func clientSetup() (launched bool, listeners []net.Listener) {
 			_ = pt.CmethodError(name, "failed to get ClientFactory")
 			continue
 		}
+
+		f.OnEvent(func(e base.TransportEvent) {
+			pt.Log(pt.LogSeverityNotice, e.String())
+		})
 
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
@@ -155,6 +161,17 @@ func clientHandler(f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
 			return
 		}
 		dialFn = dialer.Dial
+
+		// The snowflake library takes care of configuring the proxy, so rather than
+		// relying on dialfn, we need to add the proxy URL to the Snowflake args
+		if name == "snowflake" {
+			config, ok := args.(sf.ClientConfig)
+			if !ok {
+				log.Errorf("Error adding snowflake proxy URL to args")
+				return
+			}
+			config.CommunicationProxy = proxyURI
+		}
 	}
 	remote, err := f.Dial("tcp", socksReq.Target, dialFn, args)
 	if err != nil {

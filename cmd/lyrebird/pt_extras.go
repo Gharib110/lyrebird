@@ -35,7 +35,8 @@ import (
 	"os"
 	"strconv"
 
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	pt "gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib"
+	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/v2/common/proxy"
 )
 
 // This file contains things that probably should be in goptlib but are not
@@ -71,7 +72,7 @@ func ptIsClient() (bool, error) {
 	return false, errors.New("not launched as a managed transport")
 }
 
-func ptGetProxy() (*url.URL, error) {
+func ptGetProxy(isSnowflake bool) (*url.URL, error) {
 	specString := os.Getenv("TOR_PT_PROXY")
 	if specString == "" {
 		return nil, nil
@@ -93,6 +94,22 @@ func ptGetProxy() (*url.URL, error) {
 	}
 	if spec.Fragment != "" {
 		return nil, ptProxyError("proxy URI has a fragment defined")
+	}
+
+	// Snowflake has extra restrictions on which proxy types are supported.
+	// Perform the necessary checks if snowflake is one of the configured
+	// transports.
+	if isSnowflake {
+		if err := proxy.CheckProxyProtocolSupport(spec); err != nil {
+			return nil, pt.ProxyError("proxy is not supported:" + err.Error())
+		} else {
+			client := proxy.NewSocks5UDPClient(spec)
+			conn, err := client.ListenPacket("udp", nil)
+			if err != nil {
+				return nil, pt.ProxyError("proxy test failure:" + err.Error())
+			}
+			conn.Close()
+		}
 	}
 
 	switch spec.Scheme {

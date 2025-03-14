@@ -31,8 +31,10 @@ package transports // import "gitlab.torproject.org/tpo/anti-censorship/pluggabl
 
 import (
 	"fmt"
-	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/webtunnel"
 	"sync"
+
+	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/snowflake"
+	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/webtunnel"
 
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/base"
 	"gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/transports/meeklite"
@@ -91,6 +93,7 @@ func Init() error {
 		new(obfs3.Transport),
 		new(obfs4.Transport),
 		new(scramblesuit.Transport),
+		new(snowflake.Transport),
 		webtunnel.Transport,
 	} {
 		if err := Register(v); err != nil {
